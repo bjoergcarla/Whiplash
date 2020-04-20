@@ -6,6 +6,7 @@ public class Whiplash : MonoBehaviour
 {
     
     private GameObject _selectedGameObject;
+    private Rigidbody _selectedRigidBody;
     private bool _listeningForGesture;
     private Vector3 _targetLockOnPos = new Vector3();
     private Quaternion _targetLockOnRot = new Quaternion();
@@ -33,7 +34,10 @@ public class Whiplash : MonoBehaviour
 
         if (_listeningForGesture)
         {
-            ObjectLockOn();
+            //Get target position
+            _targetLockOnPos = transform.position + transform.forward * LockOnDistance;
+            //Set velocity towards target position
+            SetVelocityTowards(_selectedRigidBody, _targetLockOnPos, _selectedGameObject.transform.position);
             
         }
 
@@ -44,8 +48,9 @@ public class Whiplash : MonoBehaviour
         //Disable Gaze Controller
         GetComponent<VRGazeController>().enabled = false;
 
-        //Manipulate object
+        //Reference objects
         _selectedGameObject = obj;
+        _selectedRigidBody = _selectedGameObject.GetComponent<Rigidbody>();
 
 
         //Enable listening
@@ -58,9 +63,9 @@ public class Whiplash : MonoBehaviour
         //Enable Gaze Controller
         GetComponent<VRGazeController>().enabled = true;
 
-        //Manipulate object
+        //De-reference object
         _selectedGameObject = null;
-        _selectedGameObject.GetComponent<Rigidbody>().useGravity = false;
+        _selectedRigidBody = null;
 
         //Disable listening
         _listeningForGesture = false;
@@ -69,22 +74,16 @@ public class Whiplash : MonoBehaviour
     }
 
     //Fixates the selected object to the players main camera
-    void ObjectLockOn()
+    void SetVelocityTowards(Rigidbody objectToMove, Vector3 targetPosition, Vector3 sourcePosition)
     {
-        //Get target position
-        _targetLockOnPos = transform.position + transform.forward * LockOnDistance;
         //Get distance from target position
-        var vDist = Vector3.Distance(_targetLockOnPos, _selectedGameObject.transform.position);
+        var vDist = Vector3.Distance(targetPosition, sourcePosition);
         //Get direction to target position
-        var shootDir = _targetLockOnPos - _selectedGameObject.transform.position;
+        var shootDir = targetPosition - sourcePosition;
         shootDir.Normalize();
         
-        //Add velocity towards target position
-        Rigidbody selectedRigidBody = _selectedGameObject.GetComponent<Rigidbody>();
-        selectedRigidBody.velocity = shootDir * (vDist * 3);
-
-
-
+        //Set velocity
+        objectToMove.velocity = shootDir * (vDist * 3);
 
     }
 
