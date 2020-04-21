@@ -12,7 +12,7 @@ public class Whiplash : MonoBehaviour
     private Quaternion _targetLockOnRot = new Quaternion();
     private int _intervalCounter = 0;
 
-    private List<Quaternion> _movementOverTime = new List<Quaternion>();
+    private List<Vector3> _movementOverTime = new List<Vector3>();
 
 
     public float LockOnDistance;
@@ -30,7 +30,7 @@ public class Whiplash : MonoBehaviour
     {
 
         if (Input.GetKeyDown(KeyCode.A))
-            DeselectObject(_selectedGameObject);
+            DeselectObject();
 
         if (_listeningForGesture)
         {
@@ -38,7 +38,9 @@ public class Whiplash : MonoBehaviour
             _targetLockOnPos = transform.position + transform.forward * LockOnDistance;
             //Set velocity towards target position
             SetVelocityTowards(_selectedRigidBody, _targetLockOnPos, _selectedGameObject.transform.position);
-            
+
+            //Scan for release
+            ScanForGesture();
         }
 
     }
@@ -58,7 +60,7 @@ public class Whiplash : MonoBehaviour
 
 
     }
-    public void DeselectObject(GameObject obj)
+    public void DeselectObject()
     {
         //Enable Gaze Controller
         GetComponent<VRGazeController>().enabled = true;
@@ -89,17 +91,26 @@ public class Whiplash : MonoBehaviour
 
     #endregion
 
-    void AppendMovement()
-    {
-        _movementOverTime.Add(this.transform.rotation);
-    }
 
     void ScanForGesture()
     {
-   
-        
+        //Add new position
+        _movementOverTime.Add(_targetLockOnPos);
+
+        //Remove old values
+        if (_movementOverTime.Count > 30)
+            _movementOverTime.RemoveAt(0);
+
+        if(_movementOverTime.Count > 15)
+        {
+            List<float> distOverTime = new List<float>();
+
+            for (int i = 1; i < _movementOverTime.Count; i++)
+                distOverTime.Add(Vector3.Distance(_movementOverTime[i - 1], _movementOverTime[i]));
+
+
+        }
+
     }
-
-
 
 }
